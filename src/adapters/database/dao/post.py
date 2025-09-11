@@ -42,7 +42,6 @@ class PostDAO(AbstractPostDAO):
 
     async def get_post(self, id: int | None = None, sender_id: int | None = None,
                        name: str | None = None) -> PostDTO | None:
-        # Исправлено условие проверки параметров
         if not id and not (sender_id and name):
             raise ValueError("Either id or both sender_id and name must be passed")
 
@@ -77,7 +76,6 @@ class PostDAO(AbstractPostDAO):
 
     async def insert_post(self, post: PostRequestDTO) -> PostDTO:
         try:
-            # Проверяем, существует ли пост с таким же именем от этого отправителя
             existing_post = await self._session.scalar(
                 select(Post).where(
                     Post.sender_id == post.sender_id,
@@ -127,4 +125,5 @@ class PostDAO(AbstractPostDAO):
 
         except SQLAlchemyError as e:
             self._logger.error(f"Database error in delete_post: {e}")
+
             raise
