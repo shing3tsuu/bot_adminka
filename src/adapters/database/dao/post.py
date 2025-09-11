@@ -12,7 +12,7 @@ from src.adapters.database.structures import Post
 
 class AbstractPostDAO(ABC):
     @abstractmethod
-    async def get_post(self, id: int | None = None, sender_id: int | None = None,
+    async def get_post(self, post_id: int | None = None, sender_id: int | None = None,
                        name: str | None = None) -> PostDTO | None:
         raise NotImplementedError()
 
@@ -21,11 +21,11 @@ class AbstractPostDAO(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    async def insert_post(self, post: PostRequestDTO) -> PostDTO:
+    async def add_post(self, post: PostRequestDTO) -> PostDTO:
         raise NotImplementedError()
 
     @abstractmethod
-    async def update_post(self, post: PostRequestDTO) -> PostDTO:
+    async def update_post(self, post_id: int, post: PostRequestDTO) -> PostDTO:
         raise NotImplementedError()
 
     @abstractmethod
@@ -40,15 +40,15 @@ class PostDAO(AbstractPostDAO):
         self._session = session
         self._logger = logger or logging.getLogger(__name__)
 
-    async def get_post(self, id: int | None = None, sender_id: int | None = None,
+    async def get_post(self, post_id: int | None = None, sender_id: int | None = None,
                        name: str | None = None) -> PostDTO | None:
-        if not id and not (sender_id and name):
+        if not post_id and not (sender_id and name):
             raise ValueError("Either id or both sender_id and name must be passed")
 
         try:
             stmt = select(Post)
-            if id:
-                stmt = stmt.where(Post.id == id)
+            if post_id:
+                stmt = stmt.where(Post.id == post_id)
             elif sender_id and name:
                 stmt = stmt.where(
                     Post.sender_id == sender_id,
@@ -74,7 +74,7 @@ class PostDAO(AbstractPostDAO):
             self._logger.error(f"Database error in get_posts: {e}")
             raise
 
-    async def insert_post(self, post: PostRequestDTO) -> PostDTO:
+    async def add_post(self, post: PostRequestDTO) -> PostDTO:
         try:
             existing_post = await self._session.scalar(
                 select(Post).where(
@@ -98,18 +98,24 @@ class PostDAO(AbstractPostDAO):
             self._logger.error(f"Database error in insert_post: {e}")
             raise
 
-    async def update_post(self, post: PostRequestDTO) -> PostDTO:
+    async def update_post(self, post_id: int, post: PostRequestDTO) -> PostDTO:
         try:
+            ex_post = await self._session.scalar(
+                select(Post).where(
+                    Post.id == post_id
+                )
+            )
+
+            if not ex_post:
+                raise ValueError(f"Post with id {post_id} not found")
+
             stmt = (
                 update(Post)
-                .where(Post.id == post.id)
+                .where(Post.id == post_id)
                 .values(**post.model_dump())
                 .returning(Post)
             )
             result = await self._session.scalar(stmt)
-
-            if not result:
-                raise ValueError(f"Post with id {post.id} not found")
 
             return PostDTO.model_validate(result, from_attributes=True)
 
@@ -125,5 +131,4 @@ class PostDAO(AbstractPostDAO):
 
         except SQLAlchemyError as e:
             self._logger.error(f"Database error in delete_post: {e}")
-
             raise
