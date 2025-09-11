@@ -7,21 +7,16 @@ from src.adapters.database.dto import PostDTO, PostRequestDTO
 class InformationService:
     __slots__ = (
         "_common_dao",
-        "_post_dao",
-        "_current_post_id",
-        "_current_post"
+        "_post_dao"
     )
 
     def __init__(
             self,
             post_dao: AbstractPostDAO,
-            common_dao: AbstractCommonDAO,
-            current_post_id: int
+            common_dao: AbstractCommonDAO
     ):
         self._post_dao = post_dao
         self._common_dao = common_dao
-        self._current_post_id = current_post_id
-        self._current_post: PostDTO | None = None
 
     async def get_post_by_id(self, post_id: int) -> PostDTO | None:
         result = await self._post_dao.get_post(post_id=post_id, sender_id=None, name=None)
@@ -43,19 +38,6 @@ class InformationService:
         result = await self._post_dao.get_posts(sender_id=sender_id)
 
         return result
-
-    async def get_current_post(self) -> PostDTO:
-        if self._current_post:
-            return self._current_post
-
-        post = await self.get_post_by_id(self._current_post_id)
-
-        if not post:
-            raise ValueError("The post has not been found. ")
-
-        self._current_post = post
-
-        return post
 
     async def add_post(self, post: PostRequestDTO) -> PostDTO:
         result = await self._post_dao.add_post(post=post)
