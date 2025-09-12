@@ -1,6 +1,7 @@
+from datetime import datetime
 from typing import Optional, List
 
-from sqlalchemy import BigInteger, String, ForeignKey, Index
+from sqlalchemy import BigInteger, String, ForeignKey, Index, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -29,13 +30,14 @@ class User(Base):
         Index('ix_unique_user_tg_id', 'tg_id', unique=True),
     )
 
-
 class Post(Base):
     __tablename__ = "posts"
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100))
     text: Mapped[str] = mapped_column(String(1000))
     image_link: Mapped[str] = mapped_column(String(500))
+    is_publish_now: Mapped[bool]
+    publish_date: Mapped[Optional[datetime]] = mapped_column(DateTime)
     is_checked: Mapped[bool]
 
     sender_id: Mapped[int] = mapped_column(
