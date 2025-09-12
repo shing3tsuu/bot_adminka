@@ -1,25 +1,28 @@
 from pydantic import BaseModel, Field
+from datetime import datetime
 
 
 class UserRequestDTO(BaseModel):
-    tg_id: int
-    tg_username: str
-    surname: str | None
-    name: str | None
-    patronymic: str | None
-    number: str | None
-    is_admin: bool
+    tg_id: int # tg_id of user
+    tg_username: str # name from telegram user profile
+    surname: str | None # surname of user
+    name: str | None # name of user
+    patronymic: str | None # patronymic of user
+    number: str | None # telephone number of user
+    is_admin: bool # is user admin or not
 
 class UserDTO(UserRequestDTO):
     id: int
 
 class PostRequestDTO(BaseModel):
-    name: str
-    text: str
-    image_link: str | None
-    is_checked: bool
+    name: str # name of post
+    text: str # content (text) of post
+    image_link: str | None # link to image of post (if exists), the image itself is stored in memory
+    is_publish_now: bool # is post published now or not (after moderation)
+    publish_date: datetime | None # date of publishing post (if user choose publish then)
+    is_checked: bool # is post moderated by admin or not
 
-    sender_id: int
+    sender_id: int # id of user who sent post
 
 class PostDTO(PostRequestDTO):
     id: int
