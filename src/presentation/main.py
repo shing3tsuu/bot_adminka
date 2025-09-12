@@ -48,16 +48,15 @@ async def main():
             parse_mode=ParseMode.HTML
         )
     )
+    await bot.delete_webhook(drop_pending_updates=True)
 
     isolation = storage.create_isolation()
 
     dp = Dispatcher(events_isolation=isolation, storage=storage)
-#    dp = Dispatcher()
 
     dp.include_router(common_router)
 
     setup_dialogs(dp, events_isolation=isolation)
-#    setup_dialogs(dp)
     setup_dishka(container=container, router=dp, auto_inject=True)
 
     dp.shutdown.register(container.close)
