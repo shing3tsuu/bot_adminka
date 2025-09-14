@@ -1,6 +1,7 @@
 import asyncio
 import orjson
 import logging
+from contextlib import asynccontextmanager
 
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
@@ -13,15 +14,22 @@ from redis.asyncio import Redis
 from dishka import make_async_container
 from dishka.integrations.aiogram import AiogramProvider, setup_dishka
 
-from src.presentation.providers import AppProvider
+from fastapi import FastAPI
+import uvicorn
+from src.presentation.routers.webhooks.yookassa import router as yookassa_router
+
+from src.presentation.providers.app import AppProvider, MailingProvider
 from src.config.reader import reader, Config
 
 from src.presentation.routers.common import common_router
 
+from src.adapters.mailing.service import Mailing
+from src.adapters.automailing.service import AutoMailing
 
-async def main():
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+background_tasks = set()
 
+
+async def run_bot():
     config = reader()
 
     redis = Redis(
@@ -36,12 +44,6 @@ async def main():
         json_dumps=orjson.dumps
     )
 
-    container = make_async_container(
-        AppProvider(),
-        AiogramProvider(),
-        context={Config: config}
-    )
-
     bot = Bot(
         token=config.bot.bot_token,
         default=DefaultBotProperties(
@@ -49,6 +51,21 @@ async def main():
         )
     )
     await bot.delete_webhook(drop_pending_updates=True)
+
+    container = make_async_container(
+        AppProvider(),
+        AiogramProvider(),
+        context={Config: config}
+    )
+
+    mailing_container = make_async_container(
+        MailingProvider(),
+        context={
+            Bot: bot,
+            Redis: redis,
+            Config: config,
+        }
+    )
 
     isolation = storage.create_isolation()
 
@@ -61,12 +78,36 @@ async def main():
 
     dp.shutdown.register(container.close)
 
-    try:
-        await dp.start_polling(bot)
+    mailing = Mailing(bot=bot, redis=redis, config=config)
+    automailing = AutoMailing(mailing=mailing, container=container)
 
+    try:
+        # background_tasks.add(asyncio.create_task(automailing.start()))
+        await automailing.start()
+        await dp.start_polling(bot)
     finally:
         await container.close()
         await bot.session.close()
+
+async def run_webhook_server():
+    """
+    Need for yookassa webhooks response
+    :return:
+    """
+    app = FastAPI()
+    app.include_router(yookassa_router)
+
+    config = uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="info", reload=True)
+    server = uvicorn.Server(config)
+    await server.serve()
+
+async def main():
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+
+    await asyncio.gather(
+        run_bot(),
+        run_webhook_server()
+    )
 
 if __name__ == "__main__":
     asyncio.run(main())
