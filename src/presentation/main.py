@@ -82,8 +82,8 @@ async def run_bot():
     automailing = AutoMailing(mailing=mailing, container=container)
 
     try:
-        # background_tasks.add(asyncio.create_task(automailing.start()))
-        await automailing.start()
+        background_tasks.add(asyncio.create_task(automailing.start()))
+        # await automailing.start()
         await dp.start_polling(bot)
     finally:
         await container.close()
@@ -111,3 +111,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
