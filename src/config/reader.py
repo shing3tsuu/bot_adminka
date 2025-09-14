@@ -5,6 +5,13 @@ from pathlib import Path
 
 
 @dataclass
+class PaymentsConfig:
+    shop_id: str
+    secret_key: str
+    webhook_url: str
+    post_price: float
+
+@dataclass
 class MediaConfig:
     media_root: str
     media_url: str
@@ -14,6 +21,7 @@ class MediaConfig:
 class BotConfig:
     bot_token: str | None = None
     admin_ids: list[int] | None = None
+    channel_chat_id: str | None = None
 
 @dataclass
 class DBConfig:
@@ -37,6 +45,7 @@ class Config:
     db: DBConfig
     redis: RedisConfig
     media: MediaConfig
+    payments: PaymentsConfig
 
 
 def reader() -> Config:
@@ -55,7 +64,8 @@ def reader() -> Config:
     return Config(
         bot=BotConfig(
             bot_token=env('BOT_TOKEN', None),
-            admin_ids=[env.int('ADMIN_ID', None)]
+            admin_ids=[env.int('ADMIN_IDS', None)],
+            channel_chat_id=env('CHANNEL_CHAT_ID', None)
         ),
         db=DBConfig(
             host=env('DB_HOST', None),
@@ -75,5 +85,11 @@ def reader() -> Config:
             media_root=media_root,
             media_url=media_url,
             max_file_size=env.int('MAX_FILE_SIZE', 10 * 1024 * 1024)
+        ),
+        payments=PaymentsConfig(
+            shop_id=env('YOOKASSA_SHOP_ID'),
+            secret_key=env('YOOKASSA_SECRET_KEY'),
+            webhook_url=env('YOOKASSA_WEBHOOK_URL'),
+            post_price=env.float('POST_PRICE')
         )
     )
