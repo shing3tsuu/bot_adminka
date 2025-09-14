@@ -1,11 +1,10 @@
 from typing import AsyncIterable
-
+from aiogram import Bot
 from aiogram.types import TelegramObject
-
+from redis.asyncio import Redis
 from dishka import Provider, provide, Scope, from_context
-
+from dishka import AsyncContainer, FromDishka
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-
 from src.config.reader import Config
 from src.adapters.database.dao import (
     AbstractUserDAO,
@@ -15,14 +14,14 @@ from src.adapters.database.dao import (
     AbstractPostDAO,
     PostDAO
 )
-
 from src.adapters.database.service import UserService, PostService
 from src.adapters.database.structures import Base
 
+from src.adapters.mailing.service import Mailing
+from src.adapters.automailing.service import AutoMailing
 
 class AppProvider(Provider):
     scope = Scope.APP
-
     config_provider = from_context(provides=Config)
 
     @staticmethod
@@ -42,11 +41,9 @@ class AppProvider(Provider):
             connect_args={
                 "server_settings": {"jit": "off"}
             },
-            echo = True
+            echo=True,
         )
-
         await self.create_tables(engine)
-
         return async_sessionmaker(engine, autoflush=False, expire_on_commit=False)
 
     @provide(scope=Scope.REQUEST)
@@ -75,10 +72,8 @@ class AppProvider(Provider):
     ) -> UserService:
         try:
             user_id = obj.from_user.id
-
         except AttributeError:
             user_id = -1
-
         return UserService(
             user_dao=user_dao,
             common_dao=common_dao,
@@ -95,3 +90,12 @@ class AppProvider(Provider):
             common_dao=common_dao,
             post_dao=post_dao
         )
+
+class MailingProvider(Provider):
+    @provide(scope=Scope.APP)
+    async def mailing(self, bot: Bot, redis: Redis, config: Config) -> Mailing:
+        return Mailing(bot=bot, redis=redis, channel_chat_id=config.bot.channel_chat_id)
+
+    @provide(scope=Scope.APP)
+    async def automailing(self, mailing: Mailing, container: AsyncContainer) -> AutoMailing:
+        return AutoMailing(mailing=mailing, container=container)
