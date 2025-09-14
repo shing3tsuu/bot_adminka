@@ -1,0 +1,115 @@
+from typing import Any
+from aiogram_dialog import DialogManager
+from dishka.integrations.aiogram import FromDishka
+from dishka.integrations.aiogram_dialog import inject
+from dishka import FromDishka
+from aiogram.types import ContentType
+from aiogram_dialog.api.entities import MediaAttachment, MediaId
+
+from src.adapters.database.service import PostService, UserService
+from src.config.reader import Config
+
+
+@inject
+async def get_posts_list(
+        dialog_manager: DialogManager,
+        post_service: FromDishka[PostService],
+        **kwargs
+) -> dict[str, Any]:
+    posts = await post_service.get_unchecked_posts()
+
+    # Convert PostDTOs to Dictionaries for Serialization
+    posts_dicts = []
+    for post in posts:
+        post_dict = {
+            'id': post.id,
+            'name': post.name,
+            'text': post.text,
+            'media_link': post.media_link,
+            'media_type': post.media_type,
+            'is_publish_now': post.is_publish_now,
+            'publish_date': post.publish_date.isoformat() if post.publish_date else None,
+            'is_checked': post.is_checked,
+            "is_paid": post.is_paid,
+            'sender_id': post.sender_id
+        }
+        posts_dicts.append(post_dict)
+
+    dialog_manager.dialog_data["posts"] = posts_dicts
+
+    if not posts_dicts:
+        return {
+            "posts_list": "Нет постов на модерации.",
+            "posts": []
+        }
+
+    posts_list_items = [f"• {post_dict['name']} (от пользователя ID: {post_dict['sender_id']})" for post_dict in
+                        posts_dicts]
+    posts_list = "\n".join(posts_list_items)
+
+    return {
+        "posts_list": f"Всего на модерации: {len(posts_dicts)}\n\n{posts_list}",
+        "posts": [{"id": i, "name": f"{post_dict['name']} (от пользователя ID: {post_dict['sender_id']})"} for
+                  i, post_dict in enumerate(posts_dicts)]
+    }
+
+
+@inject
+async def get_post_details(
+        dialog_manager: DialogManager,
+        user_service: FromDishka[UserService],
+        config: FromDishka[Config],
+        **kwargs
+) -> dict[str, Any]:
+    posts = dialog_manager.dialog_data.get("posts", [])
+    current_index = dialog_manager.dialog_data.get("current_index", 0)
+
+    if not posts or current_index >= len(posts):
+        return {
+            "post_name": "Пост не найден",
+            "post_text": "",
+            "sender_name": "Неизвестно",
+            "sender_phone": "Неизвестно",
+            "post_status": "Неизвестно",
+            "has_media": False,
+            "post_media": ""
+        }
+
+    # Ensure we're working with a dictionary, not a PostDTO object
+    post = dict(posts[current_index]) if hasattr(posts[current_index], '_asdict') else posts[current_index]
+
+    sender = await user_service.get_user_by_id(post['sender_id'])
+    sender_name = f"{sender.surname} {sender.name} {sender.patronymic}" if sender else "Неизвестно"
+    sender_phone = sender.number if sender else "Неизвестно"
+
+
+    post_media = ""
+
+    if post.get('media_link'):
+        # If this is a file_id from Telegram (starts with AgA)
+        if post['media_link'].startswith('AgA'):
+            post_media = post['media_link']
+        else:
+            # If it's a file path, form the full URL using proper concatenation
+            # Make sure media_url ends with / and path doesn't start with /
+            media_url = config.media.media_url.rstrip('/') + '/'
+            media_path = post['media_link'].lstrip('/')
+
+            # Using urljoin to form URLs correctly
+            post_media = media_path
+
+    if post.get('media_type') == 'photo':
+        media = MediaAttachment(ContentType.PHOTO, path=post_media)
+    else:
+        media = MediaAttachment(ContentType.VIDEO, path=post_media)
+
+    return {
+        "post_name": post['name'],
+        "post_text": post['text'],
+        "sender_name": sender_name,
+        "sender_phone": sender_phone,
+        "post_status": "На модерации",
+        "has_media": bool(post['media_link']),
+        "media": media,
+        "paid_status": "Оплачен" if post['is_paid'] else "Не оплачен",
+    }
