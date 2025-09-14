@@ -6,6 +6,7 @@ class MenuSG(StatesGroup):
 class MyPostsSG(StatesGroup):
     list = State()
     view = State()
+    delete_confirm = State()
 
 class RegistrationSG(StatesGroup):
     surname = State()
@@ -26,4 +27,6 @@ class PostSG(StatesGroup):
 
 class AdminSG(StatesGroup):
     menu = State()
-    link = State()
+    moderation_list = State()
+    review_post = State()
+
