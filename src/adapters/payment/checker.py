@@ -25,3 +25,8 @@ class PaymentChecker:
                         logging.info(f"Payment for post {post.id} succeeded")
                 except Exception as e:
                     logging.error(f"Error checking payment {post.payment_id}: {e}")
+
+    async def start(self):
+        while True:
+            await self.check_payments()
+            await asyncio.sleep(15)
