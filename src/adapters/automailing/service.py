@@ -8,10 +8,13 @@ from dishka.integrations.aiogram_dialog import inject
 from src.adapters.database.service import PostService
 from src.adapters.mailing.service import Mailing
 
+from src.adapters.payment.checker import PaymentChecker
+
 
 class AutoMailing:
-    def __init__(self, mailing: Mailing, container: AsyncContainer):
+    def __init__(self, mailing: Mailing, payment_checker: PaymentChecker, container: AsyncContainer):
         self._mailing = mailing
+        self._payment_checker = payment_checker
         self._container = container
 
     @inject
@@ -29,5 +32,7 @@ class AutoMailing:
 
     async def start(self):
         while True:
+            await self._payment_checker.check_payments()
+            await asyncio.sleep(10)
             await self.check_posts()
-            await asyncio.sleep(60)
+            await asyncio.sleep(50)
