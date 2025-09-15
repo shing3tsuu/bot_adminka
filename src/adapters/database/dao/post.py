@@ -175,3 +175,38 @@ class PostDAO(AbstractPostDAO):
         except SQLAlchemyError as e:
             self._logger.error("Database error in mark_as_published: %s",e)
             raise
+
+    async def get_unpaid_posts(self) -> list[PostDTO]:
+        try:
+            result = await self._session.execute(
+                select(Post)
+                .where(Post.is_paid == False)
+                .where(Post.payment_id.is_not(None))
+            )
+            posts = result.scalars().all()
+            return [PostDTO.model_validate(post, from_attributes=True) for post in posts]
+        except SQLAlchemyError as e:
+            self._logger.error("Database error in get_unpaid_posts: %s", e)
+            return []
+
+    async def mark_as_paid(self, post_id: int) -> None:
+        try:
+            await self._session.execute(
+                update(Post)
+                .where(Post.id == post_id)
+                .values(is_paid=True)
+            )
+        except SQLAlchemyError as e:
+            self._logger.error("Database error in mark_as_paid: %s", e)
+            raise
+
+    async def set_payment_id(self, post_id: int, payment_id: str) -> None:
+        try:
+            await self._session.execute(
+                update(Post)
+                .where(Post.id == post_id)
+                .values(payment_id=payment_id)
+            )
+        except SQLAlchemyError as e:
+            self._logger.error("Database error in set_payment_id: %s", e)
+            raise
