@@ -98,8 +98,8 @@ class MailingProvider(Provider):
         return Mailing(bot=bot, redis=redis, channel_chat_id=config.bot.channel_chat_id)
 
     @provide(scope=Scope.APP)
-    async def auto_mailing(self, mailing: Mailing, payment_checker: PaymentChecker, container: AsyncContainer) -> AutoMailing:
-        return AutoMailing(mailing=mailing, payment_checker=payment_checker, container=container)
+    async def auto_mailing(self, mailing: Mailing, container: AsyncContainer) -> AutoMailing:
+        return AutoMailing(mailing=mailing, container=container)
 
     @provide(scope=Scope.APP)
     async def payment_checker(self, container: AsyncContainer) -> PaymentChecker:
