@@ -81,3 +81,14 @@ class PostService:
     async def mark_as_published(self, post_id: int):
         await self._post_dao.mark_as_published(post_id)
         await self._common_dao.commit()
+
+    async def get_unpaid_posts(self) -> list[PostDTO]:
+        return await self._post_dao.get_unpaid_posts()
+
+    async def mark_as_paid(self, post_id: int):
+        await self._post_dao.mark_as_paid(post_id)
+        await self._common_dao.commit()
+
+    async def set_payment_id(self, post_id: int, payment_id: str):
+        await self._post_dao.set_payment_id(post_id, payment_id)
+        await self._common_dao.commit()
