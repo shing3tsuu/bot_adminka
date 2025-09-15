@@ -1,9 +1,8 @@
 from yookassa import Configuration, Payment
-from urllib.parse import urljoin
 
 from src.config.reader import Config
 
-def create_payment(post_id: int, config: Config) -> str:
+def create_payment(post_id: int, config: Config) -> tuple[str, str]:
     Configuration.account_id = config.payments.shop_id
     Configuration.secret_key = config.payments.secret_key
 
@@ -14,11 +13,11 @@ def create_payment(post_id: int, config: Config) -> str:
         },
         "confirmation": {
             "type": "redirect",
-            "return_url": urljoin(config.payments.webhook_url, f"posts/{post_id}")
+            "return_url": config.bot.bot_url
         },
         "capture": True,
         "description": f"Оплата поста #{post_id}",
         "metadata": {"post_id": str(post_id)}
     })
 
-    return payment.confirmation.confirmation_url
+    return payment.confirmation.confirmation_url, payment.id
