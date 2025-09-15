@@ -41,6 +41,7 @@ class Post(Base):
     publish_date: Mapped[Optional[datetime]] = mapped_column(DateTime)
     is_checked: Mapped[bool]
     is_paid: Mapped[bool] = mapped_column(default=False)
+    payment_id: Mapped[Optional[str]]
     is_published: Mapped[bool] = mapped_column(default=False)
 
     sender_id: Mapped[int] = mapped_column(
