@@ -94,7 +94,6 @@ async def cancel_delete(
         dialog_manager: DialogManager
 ):
     await dialog_manager.switch_to(MyPostsSG.view)
-
 @inject
 async def pay_post(
         callback: CallbackQuery,
@@ -109,11 +108,14 @@ async def pay_post(
     if current_index < len(posts):
         post = posts[current_index]
         try:
-            payment_url = await asyncio.to_thread(
+            payment_url, payment_id = await asyncio.to_thread(
                 create_payment,
                 post_id=post['id'],
                 config=config
             )
+
+            await post_service.set_payment_id(post['id'], payment_id)
+
             await callback.message.answer(
                 f"Для оплаты перейдите по ссылке: {payment_url}"
             )
