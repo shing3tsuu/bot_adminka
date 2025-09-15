@@ -1,0 +1,10 @@
+aiogram==3.22.0
+sqlalchemy==2.0.43
+asyncpg==0.30.0
+redis==7.0.0b1
+yookassa==3.7.0
+pydantic==2.12.0a1
+dishka==1.7.1
+environs==14.3.0
+orjson==3.11.3
+aiogram-dialog==2.4.0
