@@ -57,15 +57,6 @@ async def main():
         context={Config: config}
     )
 
-    mailing_container = make_async_container(
-        MailingProvider(),
-        context={
-            Bot: bot,
-            Redis: redis,
-            Config: config,
-        }
-    )
-
     isolation = storage.create_isolation()
 
     dp = Dispatcher(events_isolation=isolation, storage=storage)
@@ -78,12 +69,13 @@ async def main():
     dp.shutdown.register(container.close)
 
     mailing = Mailing(bot=bot, redis=redis, config=config)
+
     payment_checker = PaymentChecker(container=container)
-    auto_mailing = AutoMailing(mailing=mailing, payment_checker=payment_checker, container=container)
+    auto_mailing = AutoMailing(mailing=mailing, container=container)
 
     try:
         background_tasks.add(asyncio.create_task(auto_mailing.start()))
-        # await automailing.start()
+        background_tasks.add(asyncio.create_task(payment_checker.start()))
         await dp.start_polling(bot)
     finally:
         await container.close()
