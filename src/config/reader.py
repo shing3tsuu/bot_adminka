@@ -8,7 +8,6 @@ from pathlib import Path
 class PaymentsConfig:
     shop_id: str
     secret_key: str
-    webhook_url: str
     post_price: float
 
 @dataclass
@@ -20,6 +19,7 @@ class MediaConfig:
 @dataclass
 class BotConfig:
     bot_token: str | None = None
+    bot_url: str | None = None
     admin_ids: list[int] | None = None
     channel_chat_id: str | None = None
 
@@ -64,6 +64,7 @@ def reader() -> Config:
     return Config(
         bot=BotConfig(
             bot_token=env('BOT_TOKEN', None),
+            bot_url=env('BOT_URL', None),
             admin_ids=[env.int('ADMIN_IDS', None)],
             channel_chat_id=env('CHANNEL_CHAT_ID', None)
         ),
@@ -89,7 +90,6 @@ def reader() -> Config:
         payments=PaymentsConfig(
             shop_id=env('YOOKASSA_SHOP_ID'),
             secret_key=env('YOOKASSA_SECRET_KEY'),
-            webhook_url=env('YOOKASSA_WEBHOOK_URL'),
             post_price=env.float('POST_PRICE')
         )
     )
