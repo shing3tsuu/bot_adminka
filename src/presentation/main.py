@@ -14,10 +14,6 @@ from redis.asyncio import Redis
 from dishka import make_async_container
 from dishka.integrations.aiogram import AiogramProvider, setup_dishka
 
-from fastapi import FastAPI
-import uvicorn
-from src.presentation.routers.webhooks.yookassa import router as yookassa_router
-
 from src.presentation.providers.app import AppProvider, MailingProvider
 from src.config.reader import reader, Config
 
@@ -25,11 +21,14 @@ from src.presentation.routers.common import common_router
 
 from src.adapters.mailing.service import Mailing
 from src.adapters.automailing.service import AutoMailing
+from src.adapters.payment.checker import PaymentChecker
 
 background_tasks = set()
 
 
-async def run_bot():
+async def main():
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+
     config = reader()
 
     redis = Redis(
@@ -79,36 +78,16 @@ async def run_bot():
     dp.shutdown.register(container.close)
 
     mailing = Mailing(bot=bot, redis=redis, config=config)
-    automailing = AutoMailing(mailing=mailing, container=container)
+    payment_checker = PaymentChecker(container=container)
+    auto_mailing = AutoMailing(mailing=mailing, payment_checker=payment_checker, container=container)
 
     try:
-        background_tasks.add(asyncio.create_task(automailing.start()))
+        background_tasks.add(asyncio.create_task(auto_mailing.start()))
         # await automailing.start()
         await dp.start_polling(bot)
     finally:
         await container.close()
         await bot.session.close()
 
-async def run_webhook_server():
-    """
-    Need for yookassa webhooks response
-    :return:
-    """
-    app = FastAPI()
-    app.include_router(yookassa_router)
-
-    config = uvicorn.Config(app, host="0.0.0.0", port=8000, log_level="info", reload=True)
-    server = uvicorn.Server(config)
-    await server.serve()
-
-async def main():
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
-
-    await asyncio.gather(
-        run_bot(),
-        run_webhook_server()
-    )
-
 if __name__ == "__main__":
     asyncio.run(main())
-
