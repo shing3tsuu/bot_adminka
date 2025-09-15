@@ -19,6 +19,7 @@ from src.adapters.database.structures import Base
 
 from src.adapters.mailing.service import Mailing
 from src.adapters.automailing.service import AutoMailing
+from src.adapters.payment.checker import PaymentChecker
 
 class AppProvider(Provider):
     scope = Scope.APP
@@ -97,5 +98,9 @@ class MailingProvider(Provider):
         return Mailing(bot=bot, redis=redis, channel_chat_id=config.bot.channel_chat_id)
 
     @provide(scope=Scope.APP)
-    async def automailing(self, mailing: Mailing, container: AsyncContainer) -> AutoMailing:
-        return AutoMailing(mailing=mailing, container=container)
+    async def auto_mailing(self, mailing: Mailing, payment_checker: PaymentChecker, container: AsyncContainer) -> AutoMailing:
+        return AutoMailing(mailing=mailing, payment_checker=payment_checker, container=container)
+
+    @provide(scope=Scope.APP)
+    async def payment_checker(self, container: AsyncContainer) -> PaymentChecker:
+        return PaymentChecker(container=container)
