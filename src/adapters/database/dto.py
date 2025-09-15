@@ -23,6 +23,7 @@ class PostRequestDTO(BaseModel):
     publish_date: datetime | None # date of publishing post (if user choose publish then)
     is_checked: bool # is post moderated by admin or not
     is_paid: bool # is post paid or not
+    payment_id: str | None = None
     is_published: bool = False # is post published or not
 
     sender_id: int # id of user who sent post
