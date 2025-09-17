@@ -135,7 +135,7 @@ async def get_post_details(
             has_media = True
 
     can_delete = not post['is_checked'] and not post['is_paid']
-    can_pay = not post['is_paid']
+    can_pay = post['is_checked'] and not post['is_paid']
 
     if post.get('media_type') == 'photo':
         media = MediaAttachment(ContentType.PHOTO, path=post_media)
@@ -168,4 +168,5 @@ async def get_delete_confirmation(
 
     return {
         "post_name": post_name
+
     }
