@@ -33,8 +33,6 @@ dialog = Dialog(
             Format("Телефон: {sender_phone}"),
             Format(""),
             Format("Статус: {post_status}"),
-            Format(""),
-            Format("Оплата: {paid_status}"),
         ),
         DynamicMedia("media", when="has_media"),
         Group(
