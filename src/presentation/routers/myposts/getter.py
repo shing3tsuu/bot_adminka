@@ -72,7 +72,6 @@ async def get_posts_list(
                   enumerate(zip(posts_dicts, posts_list_items))]
     }
 
-
 @inject
 async def get_post_details(
         dialog_manager: DialogManager,
@@ -168,5 +167,4 @@ async def get_delete_confirmation(
 
     return {
         "post_name": post_name
-
     }
