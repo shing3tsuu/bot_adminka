@@ -14,6 +14,7 @@ from src.config.reader import Config
 async def get_posts_list(
         dialog_manager: DialogManager,
         post_service: FromDishka[PostService],
+        user_service: FromDishka[UserService],
         **kwargs
 ) -> dict[str, Any]:
     posts = await post_service.get_unchecked_posts()
@@ -43,13 +44,15 @@ async def get_posts_list(
             "posts": []
         }
 
-    posts_list_items = [f"• {post_dict['name']} (от пользователя ID: {post_dict['sender_id']})" for post_dict in
+    posts_list_items = [f"• {post_dict['name']}" for post_dict in
                         posts_dicts]
     posts_list = "\n".join(posts_list_items)
 
+    user = await user_service.get_user_by_id(posts_dicts[0]['sender_id'])
+
     return {
         "posts_list": f"Всего на модерации: {len(posts_dicts)}\n\n{posts_list}",
-        "posts": [{"id": i, "name": f"{post_dict['name']} (от пользователя ID: {post_dict['sender_id']})"} for
+        "posts": [{"id": i, "name": f"{post_dict['name']} ({user.surname} {user.name})"} for
                   i, post_dict in enumerate(posts_dicts)]
     }
 
@@ -113,5 +116,4 @@ async def get_post_details(
         "post_status": "На модерации",
         "has_media": bool(post['media_link']),
         "media": media,
-        "paid_status": "Оплачен" if post['is_paid'] else "Не оплачен",
     }
