@@ -8,3 +8,4 @@ dishka==1.7.1
 environs==14.3.0
 orjson==3.11.3
 aiogram-dialog==2.4.0
+alembic==1.16.5
