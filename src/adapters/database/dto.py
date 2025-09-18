@@ -30,3 +30,11 @@ class PostRequestDTO(BaseModel):
 
 class PostDTO(PostRequestDTO):
     id: int
+
+class PriceRequestDTO(BaseModel):
+    name: str | None
+    price: int | None
+
+class PriceDTO(PriceRequestDTO):
+    id: int
+
