@@ -14,6 +14,8 @@ from redis.asyncio import Redis
 from dishka import make_async_container
 from dishka.integrations.aiogram import AiogramProvider, setup_dishka
 
+from yookassa import Configuration
+
 from src.presentation.providers.app import AppProvider, MailingProvider
 from src.config.reader import reader, Config
 
@@ -25,11 +27,13 @@ from src.adapters.payment.checker import PaymentChecker
 
 background_tasks = set()
 
-
 async def main():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
 
     config = reader()
+
+    Configuration.account_id = config.payments.shop_id
+    Configuration.secret_key = config.payments.secret_key
 
     redis = Redis(
         host=config.redis.host,
