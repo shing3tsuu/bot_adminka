@@ -5,15 +5,26 @@ from dishka.integrations.aiogram import FromDishka
 from aiogram_dialog.widgets.kbd import Button
 
 from src.presentation.states import PostSG, MyPostsSG
-from src.adapters.database.service import UserService
+from src.adapters.database.service import UserService, PostService
 
 @inject
 async def start_create_post(
         callback: CallbackQuery,
         button: Button,
-        dialog_manager: DialogManager
+        dialog_manager: DialogManager,
+        post_service: FromDishka[PostService]
 ):
-    await dialog_manager.start(PostSG.add_post)
+    check_posts_value = await post_service.get_unchecked_posts_from_user(callback.from_user.id)
+    if check_posts_value is True:
+        await dialog_manager.start(PostSG.add_post)
+    else:
+        info_text = (
+            "Одновременное количество постов на модерации не может быть больше трех\n"
+            "Дождитесь модерации свои текущих постов, либо удалите один из них для освобождения очереди\n"
+        )
+        await callback.message.answer(
+            info_text
+        )
 
 @inject
 async def show_my_posts(
