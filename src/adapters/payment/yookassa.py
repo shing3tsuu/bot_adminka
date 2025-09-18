@@ -3,8 +3,6 @@ from yookassa import Configuration, Payment
 from src.config.reader import Config
 
 def create_payment(post_id: int, config: Config) -> tuple[str, str]:
-    Configuration.account_id = config.payments.shop_id
-    Configuration.secret_key = config.payments.secret_key
 
     payment = Payment.create({
         "amount": {
