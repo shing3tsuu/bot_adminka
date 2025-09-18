@@ -100,6 +100,8 @@ async def get_post_details(
 
     if post.get('media_type') == 'photo':
         media = MediaAttachment(ContentType.PHOTO, path=post_media)
+    elif post.get('media_type') == None:
+        media = None
     else:
         media = MediaAttachment(ContentType.VIDEO, path=post_media)
 
