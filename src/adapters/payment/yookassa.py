@@ -2,11 +2,11 @@ from yookassa import Configuration, Payment
 
 from src.config.reader import Config
 
-def create_payment(post_id: int, config: Config) -> tuple[str, str]:
+def create_payment(post_id: int, config: Config, price: float) -> tuple[str, str]:
 
     payment = Payment.create({
         "amount": {
-            "value": config.payments.post_price,
+            "value": price,
             "currency": "RUB"
         },
         "confirmation": {
