@@ -19,7 +19,8 @@ class PaymentChecker:
                     continue
 
                 try:
-                    payment = Payment.find_one(post.payment_id)
+                    payment = await asyncio.to_thread(Payment.find_one, post.payment_id)
+
                     if payment.status == 'succeeded':
                         await post_service.mark_as_paid(post.id)
                         logging.info(f"Payment for post {post.id} succeeded")
