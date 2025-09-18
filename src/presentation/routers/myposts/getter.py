@@ -55,10 +55,10 @@ async def get_posts_list(
     posts_list_items = []
     for post_dict in posts_dicts:
         if post_dict['is_checked']:
-            if post_dict['is_publish_now']:
-                status = "✅ Опубликован"
+            if post_dict['is_paid']:
+                status = "✅ Ожидает публикации"
             else:
-                status = "✅/⏳ Одобрен, ожидает публикации"
+                status = "💳 Подтвержден, ожидает оплаты"
         else:
             status = "⏳ На модерации"
 
@@ -68,7 +68,7 @@ async def get_posts_list(
 
     return {
         "posts_list": f"Всего постов: {len(posts_dicts)}\n\n{posts_list}",
-        "posts": [{"id": i, "name": f"{post_dict['name']} ({status})"} for i, (post_dict, status) in
+        "posts": [{"id": i, "name": f" {status}"} for i, (post_dict, status) in
                   enumerate(zip(posts_dicts, posts_list_items))]
     }
 
@@ -100,10 +100,10 @@ async def get_post_details(
 
     # Determine the status of the post
     if post['is_checked']:
-        if post['is_publish_now']:
-            status = "✅ Опубликован"
+        if post['is_paid']:
+            status = "✅ Ожидает публикации"
         else:
-            status = "✅/⏳ Одобрен, ожидает публикации"
+            status = "💳 Подтвержден, ожидает оплаты"
     else:
         status = "⏳ На модерации"
 
@@ -133,7 +133,7 @@ async def get_post_details(
             post_media = media_path
             has_media = True
 
-    can_delete = not post['is_checked'] and not post['is_paid']
+    can_delete = not post['is_paid']
     can_pay = post['is_checked'] and not post['is_paid']
 
     if post.get('media_type') == 'photo':
@@ -150,7 +150,7 @@ async def get_post_details(
         "media": media,
         "post_media": post_media,
         "post_status": status,
-        "paid_status": "Оплачен" if post['is_paid'] else "Не оплачен",
+        "paid_status": "Оплачен" if post['is_paid'] else "Не оплачен (Оплатить пост возможно только после его модерации, после нее появится кнопка '💳 Оплатить публикацию')",
         "can_delete": can_delete,
         "can_pay": can_pay,
         "publish_date": f"Дата публикации: {publish_date}" if publish_date else "Дата публикации не установлена",
