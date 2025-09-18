@@ -35,7 +35,7 @@ async def start(
     keyboard = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text="Меню")],*admin_kb,], resize_keyboard=True)
 
     await message.answer(
-        "Привет, я твой бот для создания постов для волонтерства!",
+        "Привет",
         reply_markup=keyboard
     )
 
