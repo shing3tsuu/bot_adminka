@@ -39,6 +39,10 @@ class PostService:
 
         return result
 
+    async def get_unchecked_posts_from_user(self, sender_tg_id: int) -> bool:
+        result = await self._post_dao.get_unchecked_posts_from_user(sender_tg_id=sender_tg_id)
+        return result
+
     async def get_unchecked_posts(self) -> list[PostDTO]:
         result = await self._post_dao.get_unchecked_posts()
 
