@@ -1,12 +1,13 @@
 from datetime import datetime
 from typing import Optional, List
 
-from sqlalchemy import BigInteger, String, ForeignKey, Index, DateTime
+from sqlalchemy import BigInteger, String, ForeignKey, Index, DateTime, Boolean
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
 class Base(DeclarativeBase):
     pass
+
 
 class User(Base):
     __tablename__ = "users"
@@ -30,6 +31,7 @@ class User(Base):
         Index('ix_unique_user_tg_id', 'tg_id', unique=True),
     )
 
+
 class Post(Base):
     __tablename__ = "posts"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -51,4 +53,13 @@ class Post(Base):
     user: Mapped["User"] = relationship(
         "User",
         back_populates="posts"
+    )
+
+    __table_args__ = (
+        Index('ix_posts_sender_checked', 'sender_id', 'is_checked'),
+        Index('ix_posts_checked', 'is_checked'),
+        Index('ix_posts_published', 'is_published'),
+        Index('ix_posts_paid', 'is_paid'),
+        Index('ix_posts_publish_date', 'publish_date'),
+        Index('ix_posts_checked_published', 'is_checked', 'is_published'),
     )
