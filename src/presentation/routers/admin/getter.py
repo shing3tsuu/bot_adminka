@@ -6,9 +6,22 @@ from dishka import FromDishka
 from aiogram.types import ContentType
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 
-from src.adapters.database.service import PostService, UserService
+from src.adapters.database.service import PostService, UserService, PriceService
 from src.config.reader import Config
 
+@inject
+async def get_current_price(
+        dialog_manager: DialogManager,
+        price_service: FromDishka[PriceService],
+        **kwargs
+) -> dict[str, Any]:
+
+    price = await price_service.get_price("default")
+    if not price:
+        price = await price_service.add_price("default", 100)
+    return {
+        "current_price": price.price if price else "Не установлена"
+    }
 
 @inject
 async def get_posts_list(
