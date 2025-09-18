@@ -94,7 +94,8 @@ async def cancel_delete(
         dialog_manager: DialogManager
 ):
     await dialog_manager.switch_to(MyPostsSG.view)
-        
+
+
 @inject
 async def pay_post(
         callback: CallbackQuery,
@@ -124,4 +125,3 @@ async def pay_post(
             await callback.message.answer(
                 f"Ошибка при создании платежа: {str(e)}"
             )
-
