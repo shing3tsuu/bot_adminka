@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.adapters.database.dto import PostDTO, PostRequestDTO
-from src.adapters.database.structures import Post
+from src.adapters.database.structures import Post, User
 
 
 class AbstractPostDAO(ABC):
@@ -21,6 +21,14 @@ class AbstractPostDAO(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    async def get_unchecked_posts_from_user(self, sender_tg_id: int) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def get_unchecked_posts(self) -> list[PostDTO]:
+        raise NotImplementedError()
+
+    @abstractmethod
     async def add_post(self, post: PostRequestDTO) -> PostDTO:
         raise NotImplementedError()
 
@@ -30,6 +38,26 @@ class AbstractPostDAO(ABC):
 
     @abstractmethod
     async def delete_post(self, post_id: int) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def get_approved_posts(self) -> list[PostDTO]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def mark_as_published(self, post_id: int) -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def get_unpaid_posts(self) -> list[PostDTO]:
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def mark_as_paid(self, post_id: int) -> None:
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def set_payment_id(self, post_id: int, payment_id: str) -> None:
         raise NotImplementedError()
 
 
@@ -75,6 +103,27 @@ class PostDAO(AbstractPostDAO):
         except SQLAlchemyError as e:
             self._logger.error(f"Database error in get_posts: {e}")
             raise
+
+    async def get_unchecked_posts_from_user(self, sender_tg_id: int) -> bool:
+        try:
+            user_stmt = select(User).where(User.tg_id == sender_tg_id)
+            user_result = await self._session.scalar(user_stmt)
+
+            if not user_result:
+                return True
+
+            stmt = select(func.count(Post.id)).where(
+                Post.sender_id == user_result.id,
+                Post.is_checked == False
+            )
+            count = await self._session.scalar(stmt)
+
+            return count < 4
+
+        except SQLAlchemyError as e:
+            self._logger.error("Database error in get_unchecked_posts_from_user: %s", e)
+            return True
+
 
     async def get_unchecked_posts(self) -> list[PostDTO]:
         try:
@@ -151,7 +200,7 @@ class PostDAO(AbstractPostDAO):
 
     async def get_approved_posts(self) -> list[PostDTO]:
         try:
-            result = await self._session.execute(
+            result = await self._session.scalars(
                 select(Post)
                 .where(Post.is_checked == True)
                 .where(Post.is_paid == True)
