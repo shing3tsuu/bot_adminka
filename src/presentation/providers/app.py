@@ -12,9 +12,11 @@ from src.adapters.database.dao import (
     AbstractCommonDAO,
     CommonDAO,
     AbstractPostDAO,
-    PostDAO
+    PostDAO,
+    AbstractPriceDAO,
+    PriceDAO
 )
-from src.adapters.database.service import UserService, PostService
+from src.adapters.database.service import UserService, PostService, PriceService
 from src.adapters.database.structures import Base
 
 from src.adapters.mailing.service import Mailing
@@ -60,6 +62,10 @@ class AppProvider(Provider):
         return PostDAO(session=session)
 
     @provide(scope=Scope.REQUEST)
+    async def price_dao(self, session: AsyncSession) -> AbstractPriceDAO:
+        return PriceDAO(session=session)
+
+    @provide(scope=Scope.REQUEST)
     async def common_dao(self, session: AsyncSession) -> AbstractCommonDAO:
         return CommonDAO(session=session)
 
@@ -89,6 +95,17 @@ class AppProvider(Provider):
         return PostService(
             common_dao=common_dao,
             post_dao=post_dao
+        )
+
+    @provide(scope=Scope.REQUEST)
+    async def price_service(
+            self,
+            price_dao: AbstractPriceDAO,
+            common_dao: AbstractCommonDAO,
+    ) -> PriceService:
+        return PriceService(
+            common_dao=common_dao,
+            price_dao=price_dao
         )
 
 class MailingProvider(Provider):
