@@ -20,4 +20,4 @@ async def admin_panel(
         await message.answer("У вас нет прав для доступа к этой команде.")
         return
 
-    await dialog_manager.start(AdminSG.moderation_list, mode=StartMode.RESET_STACK)
+    await dialog_manager.start(AdminSG.menu, mode=StartMode.RESET_STACK)
