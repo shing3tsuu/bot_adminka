@@ -42,7 +42,6 @@ class AppProvider(Provider):
             connect_args={
                 "server_settings": {"jit": "off"}
             },
-            echo=True,
         )
         await self.create_tables(engine)
         return async_sessionmaker(engine, autoflush=False, expire_on_commit=False)
