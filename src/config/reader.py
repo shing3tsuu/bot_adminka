@@ -8,7 +8,6 @@ from pathlib import Path
 class PaymentsConfig:
     shop_id: str
     secret_key: str
-    post_price: float
 
 @dataclass
 class MediaConfig:
@@ -95,7 +94,7 @@ def reader() -> Config:
         ),
         payments=PaymentsConfig(
             shop_id=env('YOOKASSA_SHOP_ID'),
-            secret_key=env('YOOKASSA_SECRET_KEY'),
-            post_price=env.float('POST_PRICE')
+            secret_key=env('YOOKASSA_SECRET_KEY')
         )
     )
+
