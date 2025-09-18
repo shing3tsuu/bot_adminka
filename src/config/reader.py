@@ -32,6 +32,12 @@ class DBConfig:
     password: str | None = None
     path: str | None = None
 
+    @property
+    def url(self) -> str:
+        if self.path:
+            return f"sqlite+aiosqlite:///{self.path}"
+        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}"
+
 @dataclass
 class RedisConfig:
     host: str | None = 'localhost'
