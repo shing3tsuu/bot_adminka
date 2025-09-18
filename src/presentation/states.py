@@ -29,4 +29,4 @@ class AdminSG(StatesGroup):
     menu = State()
     moderation_list = State()
     review_post = State()
-
+    change_price = State()
