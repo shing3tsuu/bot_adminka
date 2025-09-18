@@ -118,7 +118,7 @@ class PostDAO(AbstractPostDAO):
             )
             count = await self._session.scalar(stmt)
 
-            return count < 4
+            return count < 3
 
         except SQLAlchemyError as e:
             self._logger.error("Database error in get_unchecked_posts_from_user: %s", e)
@@ -259,3 +259,4 @@ class PostDAO(AbstractPostDAO):
         except SQLAlchemyError as e:
             self._logger.error("Database error in set_payment_id: %s", e)
             raise
+
