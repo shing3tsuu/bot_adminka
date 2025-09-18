@@ -23,7 +23,7 @@ class AutoMailing:
             current_time = datetime.datetime.now()
             if posts:
                 for post in posts:
-                    if post.publish_date is None or post.publish_date <= current_time:
+                    if post.is_publish_now is True or post.publish_date <= current_time:
                         await self._mailing.send_to_channel(post)
                         await post_service.mark_as_published(post.id)
 
@@ -31,4 +31,5 @@ class AutoMailing:
         while True:
             await self.check_posts()
             await asyncio.sleep(60)
+
 
