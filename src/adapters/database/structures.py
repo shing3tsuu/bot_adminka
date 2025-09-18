@@ -63,3 +63,9 @@ class Post(Base):
         Index('ix_posts_publish_date', 'publish_date'),
         Index('ix_posts_checked_published', 'is_checked', 'is_published'),
     )
+
+class Price(Base):
+    __tablename__ = "prices"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str]
+    price: Mapped[float]
