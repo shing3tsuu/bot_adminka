@@ -27,11 +27,6 @@ class AppProvider(Provider):
     scope = Scope.APP
     config_provider = from_context(provides=Config)
 
-    @staticmethod
-    async def create_tables(engine):
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
     @provide(scope=Scope.APP)
     async def config(self, config: Config) -> async_sessionmaker:
         engine = create_async_engine(
@@ -45,7 +40,6 @@ class AppProvider(Provider):
                 "server_settings": {"jit": "off"}
             },
         )
-        await self.create_tables(engine)
         return async_sessionmaker(engine, autoflush=False, expire_on_commit=False)
 
     @provide(scope=Scope.REQUEST)
@@ -120,3 +114,4 @@ class MailingProvider(Provider):
     @provide(scope=Scope.APP)
     async def payment_checker(self, container: AsyncContainer) -> PaymentChecker:
         return PaymentChecker(container=container)
+
